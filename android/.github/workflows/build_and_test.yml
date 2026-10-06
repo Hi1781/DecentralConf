@@ -1,0 +1,114 @@
+name: Build and test
+
+on:
+  push:
+    branches: [ "dev", "master" ]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # Continue with other matrix items if one fails
+      matrix:
+        variant: [ 'play', 'website', 'huawei', 'fdroid' ]
+        build_type: [ 'qa' ]
+        include:
+          - variant: 'huawei'
+            extra_build_command_options: '-Phuawei=1'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Restore gradle cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            .gradle
+          key: ${{ runner.os }}-gradle-dev-${{ matrix.variant }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'gradle.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-dev-${{ matrix.variant }}-
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build with gradle
+        id: build
+        run: ./gradlew assemble${{ matrix.variant }}${{ matrix.build_type }} ${{ matrix.extra_build_command_options }} --stacktrace
+
+      - name: Save gradle cache
+        uses: actions/cache/save@v6
+        # Only save cache on dev
+        if: github.ref_name == 'dev'
+        with:
+          path: |
+            ~/.gradle/caches
+            .gradle
+          key: ${{ runner.os }}-gradle-dev-${{ matrix.variant }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'gradle.properties') }}
+
+      - name: Upload build reports regardless
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: build-reports-${{ matrix.variant }}-${{ matrix.build_type }}
+          path: app/build/reports
+          if-no-files-found: ignore
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: session-${{ matrix.variant }}-${{ matrix.build_type }}
+          path: app/build/outputs/apk/${{ matrix.variant }}/${{ matrix.build_type }}/*-universal*apk
+          if-no-files-found: error
+          compression-level: 0
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Restore Gradle cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ~/.gradle/caches
+            .gradle
+          key: ${{ runner.os }}-test-dev-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'gradle.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-test-dev-
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build with gradle
+        id: build
+        run: ./gradlew testPlayDebugUnitTest --stacktrace
+
+      - name: Save gradle cache
+        uses: actions/cache/save@v6
+        # Only save cache on dev
+        if: github.ref_name == 'dev'
+        with:
+          path: |
+            ~/.gradle/caches
+            .gradle
+          key: ${{ runner.os }}-test-dev-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', 'gradle.properties') }}
+
+      - name: Upload build reports regardless
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports
+          path: app/build/reports
+          if-no-files-found: ignore
+

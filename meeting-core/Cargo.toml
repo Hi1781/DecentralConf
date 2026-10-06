@@ -1,0 +1,23 @@
+[package]
+name = "oneapp-meeting-core"
+version = "0.5.0"
+edition = "2021"
+
+[lib]
+name = "oneapp_meeting_core"
+path = "src/lib.rs"
+crate-type = ["rlib", "staticlib"]
+
+[[bin]]
+name = "oneapp-meeting"
+path = "src/bin/meeting.rs"
+
+[dependencies]
+# 去中心化信令：libp2p（业界标准，完全点对点，无需任何服务器）
+libp2p = { version = "0.54", default-features = false, features = [
+  "tokio", "noise", "yamux", "tcp", "mdns", "gossipsub", "macros",
+] }
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "time", "macros"] }
+futures = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

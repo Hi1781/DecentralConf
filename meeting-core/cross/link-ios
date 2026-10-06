@@ -1,0 +1,6 @@
+#!/bin/bash
+BIN="/home/user/.doubao/agent_mode/workspace/toolchain/swift-5.8-RELEASE-ubuntu22.04/usr/bin"
+CLANG="$BIN/clang"
+SDK="/home/user/.doubao/agent_mode/workspace/toolchain/iPhoneOS16.4.sdk"
+exec "$CLANG" -target arm64-apple-ios16.0 -isysroot "$SDK" --ld-path="$BIN/ld64.lld" \
+  -Wl,-platform_version,ios,16.0,16.0 "$@"

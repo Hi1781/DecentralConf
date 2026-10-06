@@ -1,0 +1,65 @@
+# 第一版整合应用 OneApp（XcodeGen 工程）
+name: OneApp
+options:
+  bundleIdPrefix: org.oneapp
+  deploymentTarget:
+    iOS: "15.6"
+  createIntermediateGroups: true
+targets:
+  OneApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: OneApp
+    settings:
+      base:
+        PRODUCT_NAME: OneApp
+        PRODUCT_BUNDLE_IDENTIFIER: org.oneapp.OneApp
+        INFOPLIST_FILE: OneApp/Info.plist
+        CODE_SIGN_ENTITLEMENTS: OneApp/OneApp.entitlements
+        GENERATE_INFOPLIST_FILE: NO
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ENABLE_BITCODE: NO
+        SWIFT_VERSION: "5.0"
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
+    dependencies:
+      - target: ShareExtension
+        embed: true
+      - target: NotificationServiceExtension
+        embed: true
+
+  ShareExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Extensions/ShareExtension
+    settings:
+      base:
+        PRODUCT_NAME: ShareExtension
+        PRODUCT_BUNDLE_IDENTIFIER: org.oneapp.OneApp.ShareExtension
+        INFOPLIST_FILE: Extensions/ShareExtension/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SKIP_INSTALL: YES
+    dependencies:
+      - target: OneApp
+
+  NotificationServiceExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Extensions/NotificationService
+    settings:
+      base:
+        PRODUCT_NAME: NotificationServiceExtension
+        PRODUCT_BUNDLE_IDENTIFIER: org.oneapp.OneApp.NotificationServiceExtension
+        INFOPLIST_FILE: Extensions/NotificationService/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SKIP_INSTALL: YES
+    dependencies:
+      - target: OneApp

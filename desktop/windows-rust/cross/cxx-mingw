@@ -1,0 +1,4 @@
+#!/bin/bash
+CXX="/home/user/.doubao/agent_mode/workspace/toolchain/swift-5.8-RELEASE-ubuntu22.04/usr/bin/clang++"
+M="/home/user/Doubao/chats/38445459905317378/mingw/mingw64"
+exec "$CXX" --target=x86_64-w64-windows-gnu --sysroot="$M" "$@"
